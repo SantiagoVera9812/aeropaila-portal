@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import { Plane } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -60,16 +60,6 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </div>
-            <div className="text-right">
-              <Button
-                type="button"
-                variant="link"
-                className="px-0"
-                onClick={() => navigate("/recuperar-contrasena")}
-              >
-                ¿Olvidó su contraseña?
-              </Button>
             </div>
             <Button type="submit" className="w-full">
               Iniciar Sesión
