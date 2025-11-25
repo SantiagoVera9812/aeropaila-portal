@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useReportes } from "@/hooks/useReportes";
-import { ReporteDestinosPopularesDTO, ReporteIngresosDTO, ReporteOcupacionDTO } from "@/types/api";
+import { ReporteDestinosPopularesDTO, ReporteOcupacionDTO } from "@/types/api";
 import { ArrowLeft, Download, FileText, Plane } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -25,19 +25,15 @@ const Reportes = () => {
     fechaHasta: "",
   });
   
-  const { isLoading, getReporteOcupacion, getReporteIngresos, getReporteDestinosPopulares } = useReportes();
+  const { isLoading, getReporteOcupacion, getReporteDestinosPopulares } = useReportes();
   
   const [ocupacionData, setOcupacionData] = useState<ReporteOcupacionDTO[]>([]);
-  const [ingresosData, setIngresosData] = useState<ReporteIngresosDTO[]>([]);
   const [destinosData, setDestinosData] = useState<ReporteDestinosPopularesDTO[]>([]);
 
   const fetchData = async () => {
     if (activeView === "ocupacion") {
       const data = await getReporteOcupacion(filters.fechaDesde, filters.fechaHasta);
       setOcupacionData(data);
-    } else if (activeView === "ingresos") {
-      const data = await getReporteIngresos(filters.fechaDesde, filters.fechaHasta);
-      setIngresosData(data);
     } else if (activeView === "destinos") {
       const data = await getReporteDestinosPopulares();
       setDestinosData(data);
@@ -87,47 +83,24 @@ const Reportes = () => {
       );
     }
 
-    if (activeView === "ingresos") {
-      return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Vuelo</TableHead>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Total Reservas</TableHead>
-              <TableHead>Ingreso Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ingresosData.map((item) => (
-              <TableRow key={item.vueloId}>
-                <TableCell>{item.numeroVuelo}</TableCell>
-                <TableCell>{new Date(item.fechaSalida).toLocaleString()}</TableCell>
-                <TableCell>{item.totalReservas}</TableCell>
-                <TableCell>${item.ingresoTotal.toLocaleString()}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      );
-    }
-
     if (activeView === "destinos") {
       return (
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Origen</TableHead>
               <TableHead>Destino</TableHead>
-              <TableHead>Total Reservas</TableHead>
-              <TableHead>Ingreso Total</TableHead>
+              <TableHead>Cantidad Reservas</TableHead>
+              <TableHead>Total Pasajeros</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {destinosData.map((item) => (
-              <TableRow key={item.destino}>
+            {destinosData.map((item, index) => (
+              <TableRow key={`${item.origen}-${item.destino}-${index}`}>
+                <TableCell>{item.origen}</TableCell>
                 <TableCell>{item.destino}</TableCell>
-                <TableCell>{item.totalReservas}</TableCell>
-                <TableCell>${item.ingresoTotal.toLocaleString()}</TableCell>
+                <TableCell>{item.cantidadReservas}</TableCell>
+                <TableCell>{item.totalPasajeros}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -196,9 +169,8 @@ const Reportes = () => {
         {/* View Toggle */}
         <div className="mb-6">
           <Tabs value={activeView} onValueChange={setActiveView}>
-            <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
               <TabsTrigger value="ocupacion">Ocupación</TabsTrigger>
-              <TabsTrigger value="ingresos">Ingresos</TabsTrigger>
               <TabsTrigger value="destinos">Destinos Populares</TabsTrigger>
             </TabsList>
           </Tabs>
@@ -209,7 +181,6 @@ const Reportes = () => {
           <CardHeader>
             <CardTitle>
               {activeView === "ocupacion" && "Reporte de Ocupación"}
-              {activeView === "ingresos" && "Reporte de Ingresos"}
               {activeView === "destinos" && "Destinos Más Populares"}
             </CardTitle>
           </CardHeader>

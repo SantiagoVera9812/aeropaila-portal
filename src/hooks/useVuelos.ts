@@ -24,11 +24,13 @@ export const useVuelos = () => {
     setIsLoading(true);
     try {
       // Transform DTO to Entity structure for Backend
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, asientosDisponibles, numeroVuelo, ...vueloData } = vuelo;
       const payload = {
-        ...vuelo,
+        ...vueloData,
         origen: { codigoIATA: vuelo.origen },
         destino: { codigoIATA: vuelo.destino },
-        capacidad: vuelo.capacidadTotal // Map capacidadTotal to capacidad
+        capacidadTotal: vuelo.capacidadTotal
       };
       await api.post('/v1/admin/vuelos', payload);
       toast.success('Vuelo creado exitosamente');
@@ -47,11 +49,13 @@ export const useVuelos = () => {
     setIsLoading(true);
     try {
       // Transform DTO to Entity structure for Backend
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id: _id, asientosDisponibles, numeroVuelo, ...vueloData } = vuelo;
       const payload = {
-        ...vuelo,
+        ...vueloData,
         origen: { codigoIATA: vuelo.origen },
         destino: { codigoIATA: vuelo.destino },
-        capacidad: vuelo.capacidadTotal // Map capacidadTotal to capacidad
+        capacidadTotal: vuelo.capacidadTotal
       };
       await api.put(`/v1/admin/vuelos/${id}`, payload);
       toast.success('Vuelo actualizado exitosamente');

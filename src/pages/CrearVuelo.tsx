@@ -2,6 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAeropuertos } from "@/hooks/useAeropuertos";
 import { useVuelos } from "@/hooks/useVuelos";
 import { ArrowLeft, Plane } from "lucide-react";
 import { useState } from "react";
@@ -10,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 const CrearVuelo = () => {
   const navigate = useNavigate();
   const { createVuelo, isLoading } = useVuelos();
+  const { aeropuertos } = useAeropuertos();
   const [formData, setFormData] = useState({
     aerolinea: "",
     origen: "",
@@ -84,26 +93,42 @@ const CrearVuelo = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="origen">Aeropuerto de Origen</Label>
-                  <Input
-                    id="origen"
-                    placeholder="BOG"
-                    value={formData.origen}
-                    onChange={(e) => setFormData({...formData, origen: e.target.value.toUpperCase()})}
-                    required
+                  <Select 
+                    value={formData.origen} 
+                    onValueChange={(value) => setFormData({...formData, origen: value})}
                     disabled={isLoading}
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar origen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {aeropuertos.map((aeropuerto) => (
+                        <SelectItem key={aeropuerto.codigoIATA} value={aeropuerto.codigoIATA}>
+                          {aeropuerto.codigoIATA} - {aeropuerto.nombre} ({aeropuerto.ciudad})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="destino">Aeropuerto de Destino</Label>
-                  <Input
-                    id="destino"
-                    placeholder="MDE"
-                    value={formData.destino}
-                    onChange={(e) => setFormData({...formData, destino: e.target.value.toUpperCase()})}
-                    required
+                  <Select 
+                    value={formData.destino} 
+                    onValueChange={(value) => setFormData({...formData, destino: value})}
                     disabled={isLoading}
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar destino" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {aeropuertos.map((aeropuerto) => (
+                        <SelectItem key={aeropuerto.codigoIATA} value={aeropuerto.codigoIATA}>
+                          {aeropuerto.codigoIATA} - {aeropuerto.nombre} ({aeropuerto.ciudad})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

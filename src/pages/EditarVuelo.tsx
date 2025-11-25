@@ -2,7 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAeropuertos } from "@/hooks/useAeropuertos";
 import { useVuelos } from "@/hooks/useVuelos";
+import { VueloDTO } from "@/types/api";
 import { ArrowLeft, Plane } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,6 +21,9 @@ const EditarVuelo = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { vuelos, updateVuelo, isLoading } = useVuelos();
+  const { aeropuertos } = useAeropuertos();
+  const [originalVuelo, setOriginalVuelo] = useState<VueloDTO | null>(null);
+  
   const [formData, setFormData] = useState({
     aerolinea: "",
     origen: "",
@@ -20,14 +32,15 @@ const EditarVuelo = () => {
     fechaLlegada: "",
     horarioSalida: "",
     horarioLlegada: "",
-    precio: "",
-    capacidadTotal: ""
+    precio: "0",
+    capacidadTotal: "0"
   });
 
   useEffect(() => {
     if (vuelos.length > 0 && id) {
       const vuelo = vuelos.find(v => v.id === id);
       if (vuelo) {
+        setOriginalVuelo(vuelo);
         const [fechaSalida, horaSalidaFull] = vuelo.fechaSalida.split('T');
         const [fechaLlegada, horaLlegadaFull] = vuelo.fechaLlegada.split('T');
         
@@ -40,7 +53,7 @@ const EditarVuelo = () => {
           horarioSalida: horaSalidaFull.substring(0, 5),
           horarioLlegada: horaLlegadaFull.substring(0, 5),
           precio: vuelo.precio.toString(),
-          capacidadTotal: vuelo.capacidadTotal?.toString() || ""
+          capacidadTotal: vuelo.capacidadTotal?.toString() || "0"
         });
       } else {
         toast.error("Vuelo no encontrado");
@@ -51,12 +64,21 @@ const EditarVuelo = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
+    if (!id || !originalVuelo) return;
+
+    const precio = Number.parseFloat(formData.precio);
+  const capacidadTotal = Number.parseInt(formData.capacidadTotal);
+
+  if (isNaN(precio) || isNaN(capacidadTotal)) {
+    toast.error("Por favor ingrese valores válidos para precio y capacidad");
+    return;
+  }
     
     const fechaSalidaISO = `${formData.fechaSalida}T${formData.horarioSalida}:00`;
     const fechaLlegadaISO = `${formData.fechaLlegada}T${formData.horarioLlegada}:00`;
 
-    const vueloDTO = {
+    const vueloDTO: VueloDTO = {
+      ...originalVuelo,
       aerolinea: formData.aerolinea,
       origen: formData.origen,
       destino: formData.destino,
@@ -112,26 +134,42 @@ const EditarVuelo = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="origen">Aeropuerto de Origen</Label>
-                  <Input
-                    id="origen"
-                    placeholder="BOG"
-                    value={formData.origen}
-                    onChange={(e) => setFormData({...formData, origen: e.target.value.toUpperCase()})}
-                    required
+                  <Select 
+                    value={formData.origen} 
+                    onValueChange={(value) => setFormData({...formData, origen: value})}
                     disabled={isLoading}
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar origen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {aeropuertos.map((aeropuerto) => (
+                        <SelectItem key={aeropuerto.codigoIATA} value={aeropuerto.codigoIATA}>
+                          {aeropuerto.codigoIATA} - {aeropuerto.nombre} ({aeropuerto.ciudad})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="destino">Aeropuerto de Destino</Label>
-                  <Input
-                    id="destino"
-                    placeholder="MDE"
-                    value={formData.destino}
-                    onChange={(e) => setFormData({...formData, destino: e.target.value.toUpperCase()})}
-                    required
+                  <Select 
+                    value={formData.destino} 
+                    onValueChange={(value) => setFormData({...formData, destino: value})}
                     disabled={isLoading}
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar destino" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {aeropuertos.map((aeropuerto) => (
+                        <SelectItem key={aeropuerto.codigoIATA} value={aeropuerto.codigoIATA}>
+                          {aeropuerto.codigoIATA} - {aeropuerto.nombre} ({aeropuerto.ciudad})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

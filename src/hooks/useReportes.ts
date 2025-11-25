@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import api from '../lib/api';
-import { ReporteDestinosPopularesDTO, ReporteIngresosDTO, ReporteOcupacionDTO } from '../types/api';
+import { ReporteDestinosPopularesDTO, ReporteOcupacionDTO } from '../types/api';
 
 export const useReportes = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,25 +21,10 @@ export const useReportes = () => {
     }
   }, []);
 
-  const getReporteIngresos = useCallback(async (fechaInicio?: string, fechaFin?: string) => {
-    setIsLoading(true);
-    try {
-      const params = { fechaInicio, fechaFin };
-      const response = await api.get<ReporteIngresosDTO[]>('/v1/admin/reportes/ingresos', { params });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching reporte ingresos:', error);
-      toast.error('Error al cargar reporte de ingresos');
-      return [];
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   const getReporteDestinosPopulares = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await api.get<ReporteDestinosPopularesDTO[]>('/v1/admin/reportes/destinos-populares');
+      const response = await api.get<ReporteDestinosPopularesDTO[]>('/v1/admin/reportes/rutas-populares');
       return response.data;
     } catch (error) {
       console.error('Error fetching reporte destinos populares:', error);
@@ -53,7 +38,6 @@ export const useReportes = () => {
   return {
     isLoading,
     getReporteOcupacion,
-    getReporteIngresos,
     getReporteDestinosPopulares
   };
 };

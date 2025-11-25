@@ -3,30 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { useVuelos } from "@/hooks/useVuelos";
 import {
-    ArrowLeft, Calendar, DollarSign,
-    Edit,
-    Filter,
-    Plane,
-    Plus,
-    Search,
-    Trash2,
-    Users
+  ArrowLeft, Calendar, DollarSign,
+  Edit,
+  Filter,
+  Plane,
+  Plus,
+  Search,
+  Trash2,
+  Users
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -196,7 +196,7 @@ const Vuelos = () => {
                 <TableHead>Ruta</TableHead>
                 <TableHead>Horario</TableHead>
                 <TableHead>Precio</TableHead>
-                <TableHead>Asientos Disponibles</TableHead>
+                <TableHead>Capacidad</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>

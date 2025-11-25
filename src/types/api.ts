@@ -94,9 +94,10 @@ export interface ReporteIngresosDTO {
 }
 
 export interface ReporteDestinosPopularesDTO {
+  origen: string;
   destino: string;
-  totalReservas: number;
-  ingresoTotal: number;
+  cantidadReservas: number;
+  totalPasajeros: number;
 }
 
 export interface ErrorResponse {

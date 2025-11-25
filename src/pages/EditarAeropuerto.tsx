@@ -2,7 +2,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAeropuertos } from "@/hooks/useAeropuertos";
+import { countries } from "@/lib/constants";
 import { ArrowLeft, Plane } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -14,6 +22,7 @@ const EditarAeropuerto = () => {
   const { aeropuertos, updateAeropuerto, isLoading } = useAeropuertos();
   const [formData, setFormData] = useState({
     codigoIATA: "",
+    codigoICAO: "",
     nombre: "",
     ciudad: "",
     pais: ""
@@ -25,6 +34,7 @@ const EditarAeropuerto = () => {
       if (aeropuerto) {
         setFormData({
           codigoIATA: aeropuerto.codigoIATA,
+          codigoICAO: aeropuerto.codigoICAO || "",
           nombre: aeropuerto.nombre,
           ciudad: aeropuerto.ciudad,
           pais: aeropuerto.pais
@@ -71,33 +81,20 @@ const EditarAeropuerto = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="codigo">Código IATA</Label>
-                  <Input
-                    id="codigo"
-                    placeholder="BOG"
-                    maxLength={3}
-                    value={formData.codigoIATA}
-                    onChange={(e) => setFormData({...formData, codigoIATA: e.target.value.toUpperCase()})}
-                    required
-                    disabled={isLoading}
-                  />
-                  <p className="text-sm text-muted-foreground">Código de 3 letras</p>
-                </div>
+             
+              <div className="space-y-2">
+                <Label htmlFor="nombre">Nombre del Aeropuerto</Label>
+                <Input
+                  id="nombre"
+                  placeholder="El Dorado"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="nombre">Nombre del Aeropuerto</Label>
-                  <Input
-                    id="nombre"
-                    placeholder="El Dorado"
-                    value={formData.nombre}
-                    onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="ciudad">Ciudad</Label>
                   <Input
@@ -112,14 +109,22 @@ const EditarAeropuerto = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="pais">País</Label>
-                  <Input
-                    id="pais"
-                    placeholder="Colombia"
-                    value={formData.pais}
-                    onChange={(e) => setFormData({...formData, pais: e.target.value})}
-                    required
+                  <Select 
+                    value={formData.pais} 
+                    onValueChange={(value) => setFormData({...formData, pais: value})}
                     disabled={isLoading}
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar país" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country.value} value={country.value}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
