@@ -1,72 +1,120 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
-import { 
-  Plane, Search, Filter, Plus, Edit, Trash2, 
-  ArrowLeft, Calendar, DollarSign, Users 
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { useVuelos } from "@/hooks/useVuelos";
+import {
+    ArrowLeft, Calendar, DollarSign,
+    Edit,
+    Filter,
+    Plane,
+    Plus,
+    Search,
+    Trash2,
+    Users
+} from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Vuelos = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const { vuelos, isLoading, deleteVuelo } = useVuelos();
 
-  // Mock data
-  const vuelos = [
-    {
-      id: "AP001",
-      origen: "BOG",
-      destino: "MDE",
-      aeropuertoOrigen: "El Dorado",
-      aeropuertoDestino: "José María Córdova",
-      horario: "08:30",
-      fecha: "2024-01-15",
-      precio: "$150.000",
-      asientosDisponibles: 45,
-      estado: "disponible"
-    },
-    {
-      id: "AP002",
-      origen: "CLO",
-      destino: "BOG",
-      aeropuertoOrigen: "Alfonso Bonilla Aragón",
-      aeropuertoDestino: "El Dorado",
-      horario: "14:00",
-      fecha: "2024-01-15",
-      precio: "$180.000",
-      asientosDisponibles: 0,
-      estado: "lleno"
-    },
-    {
-      id: "AP003",
-      origen: "MDE",
-      destino: "CTG",
-      aeropuertoOrigen: "José María Córdova",
-      aeropuertoDestino: "Rafael Núñez",
-      horario: "16:45",
-      fecha: "2024-01-15",
-      precio: "$200.000",
-      asientosDisponibles: 23,
-      estado: "disponible"
-    },
-  ];
+  const filteredVuelos = vuelos.filter(v => 
+    (v.numeroVuelo && v.numeroVuelo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (v.aerolinea && v.aerolinea.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    v.origen.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.destino.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const renderTableBody = () => {
+    if (isLoading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={7} className="text-center py-8">
+            Cargando vuelos...
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (filteredVuelos.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={7} className="text-center py-8">
+            No se encontraron vuelos
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return filteredVuelos.map((vuelo) => (
+      <TableRow key={vuelo.id}>
+        <TableCell className="font-medium">{vuelo.numeroVuelo || vuelo.aerolinea || 'N/A'}</TableCell>
+        <TableCell>
+          <div>
+            <div className="font-medium flex items-center gap-2">
+              {vuelo.origen}
+              <span className="text-muted-foreground">→</span>
+              {vuelo.destino}
+            </div>
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3 text-muted-foreground" />
+            <span className="font-medium">{new Date(vuelo.fechaSalida).toLocaleString()}</span>
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-1">
+            <DollarSign className="w-3 h-3 text-muted-foreground" />
+            {vuelo.precio}
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-1">
+            <Users className="w-3 h-3 text-muted-foreground" />
+            {vuelo.asientosDisponibles} {vuelo.capacidadTotal ? `/ ${vuelo.capacidadTotal}` : ''}
+          </div>
+        </TableCell>
+        <TableCell>
+          <Badge 
+            variant={(vuelo.asientosDisponibles || 0) > 0 ? "default" : "destructive"}
+            className={(vuelo.asientosDisponibles || 0) > 0 ? "bg-success" : ""}
+          >
+            {(vuelo.asientosDisponibles || 0) > 0 ? "Disponible" : "Lleno"}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/vuelos/editar/${vuelo.id}`)}>
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => vuelo.id && deleteVuelo(vuelo.id)}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+    ));
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -135,28 +183,6 @@ const Vuelos = () => {
                   <SelectItem value="lleno">Lleno</SelectItem>
                 </SelectContent>
               </Select>
-
-              <Select>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Origen" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bog">Bogotá (BOG)</SelectItem>
-                  <SelectItem value="mde">Medellín (MDE)</SelectItem>
-                  <SelectItem value="clo">Cali (CLO)</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Destino" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bog">Bogotá (BOG)</SelectItem>
-                  <SelectItem value="mde">Medellín (MDE)</SelectItem>
-                  <SelectItem value="ctg">Cartagena (CTG)</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </Card>
@@ -176,60 +202,7 @@ const Vuelos = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {vuelos.map((vuelo) => (
-                <TableRow key={vuelo.id}>
-                  <TableCell className="font-medium">{vuelo.id}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium flex items-center gap-2">
-                        {vuelo.origen}
-                        <span className="text-muted-foreground">→</span>
-                        {vuelo.destino}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {vuelo.aeropuertoOrigen} → {vuelo.aeropuertoDestino}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-muted-foreground" />
-                      <span className="font-medium">{vuelo.horario}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">{vuelo.fecha}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="w-3 h-3 text-muted-foreground" />
-                      {vuelo.precio}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3 text-muted-foreground" />
-                      {vuelo.asientosDisponibles}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={vuelo.estado === "disponible" ? "default" : "destructive"}
-                      className={vuelo.estado === "disponible" ? "bg-success" : ""}
-                    >
-                      {vuelo.estado === "disponible" ? "Disponible" : "Lleno"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {renderTableBody()}
             </TableBody>
           </Table>
         </Card>

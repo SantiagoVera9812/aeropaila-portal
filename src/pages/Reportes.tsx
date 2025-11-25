@@ -1,34 +1,139 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNavigate } from "react-router-dom";
-import { Plane, ArrowLeft, FileText, Download } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useReportes } from "@/hooks/useReportes";
+import { ReporteDestinosPopularesDTO, ReporteIngresosDTO, ReporteOcupacionDTO } from "@/types/api";
+import { ArrowLeft, Download, FileText, Plane } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Reportes = () => {
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState("resumen");
+  const [activeView, setActiveView] = useState("ocupacion");
   const [filters, setFilters] = useState({
     fechaDesde: "",
     fechaHasta: "",
-    aeropuerto: "",
-    estado: ""
   });
+  
+  const { isLoading, getReporteOcupacion, getReporteIngresos, getReporteDestinosPopulares } = useReportes();
+  
+  const [ocupacionData, setOcupacionData] = useState<ReporteOcupacionDTO[]>([]);
+  const [ingresosData, setIngresosData] = useState<ReporteIngresosDTO[]>([]);
+  const [destinosData, setDestinosData] = useState<ReporteDestinosPopularesDTO[]>([]);
 
-  // Mock data
-  const stats = {
-    vuelosTotales: 156,
-    reservasTotales: 2340,
-    asientosDisponibles: 1245
+  const fetchData = async () => {
+    if (activeView === "ocupacion") {
+      const data = await getReporteOcupacion(filters.fechaDesde, filters.fechaHasta);
+      setOcupacionData(data);
+    } else if (activeView === "ingresos") {
+      const data = await getReporteIngresos(filters.fechaDesde, filters.fechaHasta);
+      setIngresosData(data);
+    } else if (activeView === "destinos") {
+      const data = await getReporteDestinosPopulares();
+      setDestinosData(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView]); // Fetch when view changes
+
+  const handleSearch = () => {
+    fetchData();
+  };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <div className="text-center py-8">Cargando reporte...</div>;
+    }
+
+    if (activeView === "ocupacion") {
+      return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Vuelo</TableHead>
+              <TableHead>Ruta</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Capacidad</TableHead>
+              <TableHead>Ocupados</TableHead>
+              <TableHead>% Ocupación</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {ocupacionData.map((item) => (
+              <TableRow key={item.vueloId}>
+                <TableCell>{item.numeroVuelo}</TableCell>
+                <TableCell>{item.origen} - {item.destino}</TableCell>
+                <TableCell>{new Date(item.fechaSalida).toLocaleString()}</TableCell>
+                <TableCell>{item.capacidadTotal}</TableCell>
+                <TableCell>{item.asientosOcupados}</TableCell>
+                <TableCell>{item.porcentajeOcupacion.toFixed(2)}%</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      );
+    }
+
+    if (activeView === "ingresos") {
+      return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Vuelo</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Total Reservas</TableHead>
+              <TableHead>Ingreso Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {ingresosData.map((item) => (
+              <TableRow key={item.vueloId}>
+                <TableCell>{item.numeroVuelo}</TableCell>
+                <TableCell>{new Date(item.fechaSalida).toLocaleString()}</TableCell>
+                <TableCell>{item.totalReservas}</TableCell>
+                <TableCell>${item.ingresoTotal.toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      );
+    }
+
+    if (activeView === "destinos") {
+      return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Destino</TableHead>
+              <TableHead>Total Reservas</TableHead>
+              <TableHead>Ingreso Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {destinosData.map((item) => (
+              <TableRow key={item.destino}>
+                <TableCell>{item.destino}</TableCell>
+                <TableCell>{item.totalReservas}</TableCell>
+                <TableCell>${item.ingresoTotal.toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      );
+    }
   };
 
   return (
@@ -62,7 +167,7 @@ const Reportes = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div className="space-y-2">
                 <Label htmlFor="fechaDesde">Fecha Desde</Label>
                 <Input
@@ -83,42 +188,7 @@ const Reportes = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="aeropuerto">Aeropuerto</Label>
-                <Select 
-                  value={filters.aeropuerto}
-                  onValueChange={(value) => setFilters({...filters, aeropuerto: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="bog">Bogotá (BOG)</SelectItem>
-                    <SelectItem value="mde">Medellín (MDE)</SelectItem>
-                    <SelectItem value="clo">Cali (CLO)</SelectItem>
-                    <SelectItem value="ctg">Cartagena (CTG)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="estado">Estado del Vuelo</Label>
-                <Select 
-                  value={filters.estado}
-                  onValueChange={(value) => setFilters({...filters, estado: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="disponible">Disponible</SelectItem>
-                    <SelectItem value="lleno">Lleno</SelectItem>
-                    <SelectItem value="cancelado">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Button onClick={handleSearch}>Generar Reporte</Button>
             </div>
           </CardContent>
         </Card>
@@ -127,63 +197,24 @@ const Reportes = () => {
         <div className="mb-6">
           <Tabs value={activeView} onValueChange={setActiveView}>
             <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="resumen">Resumen General</TabsTrigger>
-              <TabsTrigger value="vuelos">Vuelos y Rutas</TabsTrigger>
-              <TabsTrigger value="estadisticas">Estadísticas</TabsTrigger>
+              <TabsTrigger value="ocupacion">Ocupación</TabsTrigger>
+              <TabsTrigger value="ingresos">Ingresos</TabsTrigger>
+              <TabsTrigger value="destinos">Destinos Populares</TabsTrigger>
             </TabsList>
           </Tabs>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vuelos Totales</CardTitle>
-              <Plane className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.vuelosTotales}</div>
-              <p className="text-xs text-muted-foreground">En el período seleccionado</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Reservas Totales</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.reservasTotales}</div>
-              <p className="text-xs text-muted-foreground">Confirmadas</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Asientos Disponibles</CardTitle>
-              <div className="h-4 w-4 rounded-full bg-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.asientosDisponibles}</div>
-              <p className="text-xs text-muted-foreground">Para próximos vuelos</p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Detailed Report */}
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>
-              {activeView === "resumen" && "Resumen General"}
-              {activeView === "vuelos" && "Reporte de Vuelos y Rutas"}
-              {activeView === "estadisticas" && "Estadísticas Detalladas"}
+              {activeView === "ocupacion" && "Reporte de Ocupación"}
+              {activeView === "ingresos" && "Reporte de Ingresos"}
+              {activeView === "destinos" && "Destinos Más Populares"}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-12 text-muted-foreground">
-              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Seleccione los filtros arriba para generar el reporte</p>
-            </div>
+            {renderContent()}
           </CardContent>
         </Card>
       </main>

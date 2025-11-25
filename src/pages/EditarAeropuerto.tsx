@@ -4,12 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAeropuertos } from "@/hooks/useAeropuertos";
 import { ArrowLeft, Plane } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
-const CrearAeropuerto = () => {
+const EditarAeropuerto = () => {
   const navigate = useNavigate();
-  const { createAeropuerto, isLoading } = useAeropuertos();
+  const { id } = useParams();
+  const { aeropuertos, updateAeropuerto, isLoading } = useAeropuertos();
   const [formData, setFormData] = useState({
     codigoIATA: "",
     nombre: "",
@@ -17,9 +19,28 @@ const CrearAeropuerto = () => {
     pais: ""
   });
 
+  useEffect(() => {
+    if (aeropuertos.length > 0 && id) {
+      const aeropuerto = aeropuertos.find(a => a.codigoIATA === id);
+      if (aeropuerto) {
+        setFormData({
+          codigoIATA: aeropuerto.codigoIATA,
+          nombre: aeropuerto.nombre,
+          ciudad: aeropuerto.ciudad,
+          pais: aeropuerto.pais
+        });
+      } else {
+        toast.error("Aeropuerto no encontrado");
+        navigate("/aeropuertos");
+      }
+    }
+  }, [aeropuertos, id, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await createAeropuerto(formData);
+    if (!id) return;
+    
+    const success = await updateAeropuerto(id, formData);
     if (success) {
       navigate("/aeropuertos");
     }
@@ -39,7 +60,7 @@ const CrearAeropuerto = () => {
           <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
             <Plane className="w-5 h-5 text-primary-foreground rotate-45" />
           </div>
-          <h1 className="text-xl font-bold">Crear Nuevo Aeropuerto</h1>
+          <h1 className="text-xl font-bold">Editar Aeropuerto</h1>
         </div>
       </header>
 
@@ -104,7 +125,7 @@ const CrearAeropuerto = () => {
 
               <div className="flex gap-4 pt-4">
                 <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? "Creando..." : "Crear Aeropuerto"}
+                  {isLoading ? "Guardando..." : "Guardar Cambios"}
                 </Button>
                 <Button type="button" variant="outline" className="flex-1" onClick={handleCancel} disabled={isLoading}>
                   Cancelar
@@ -118,4 +139,4 @@ const CrearAeropuerto = () => {
   );
 };
 
-export default CrearAeropuerto;
+export default EditarAeropuerto;

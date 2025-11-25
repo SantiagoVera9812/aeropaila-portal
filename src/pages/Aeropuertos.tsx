@@ -1,57 +1,74 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
-import { MapPin, Search, Plus, Edit, Trash2, ArrowLeft, Plane } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
+import { useAeropuertos } from "@/hooks/useAeropuertos";
+import { ArrowLeft, Edit, MapPin, Plane, Plus, Search, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Aeropuertos = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const { aeropuertos, isLoading, deleteAeropuerto } = useAeropuertos();
 
-  // Mock data
-  const aeropuertos = [
-    {
-      codigo: "BOG",
-      nombre: "El Dorado",
-      ciudad: "Bogotá",
-      pais: "Colombia",
-      estado: "activo"
-    },
-    {
-      codigo: "MDE",
-      nombre: "José María Córdova",
-      ciudad: "Medellín",
-      pais: "Colombia",
-      estado: "activo"
-    },
-    {
-      codigo: "CLO",
-      nombre: "Alfonso Bonilla Aragón",
-      ciudad: "Cali",
-      pais: "Colombia",
-      estado: "activo"
-    },
-    {
-      codigo: "CTG",
-      nombre: "Rafael Núñez",
-      ciudad: "Cartagena",
-      pais: "Colombia",
-      estado: "mantenimiento"
-    },
-  ];
+  const filteredAeropuertos = aeropuertos.filter(a => 
+    a.codigoIATA.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.ciudad.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const aeropuertosActivos = aeropuertos.filter(a => a.estado === "activo").length;
-  const aeropuertosMantenimiento = aeropuertos.filter(a => a.estado === "mantenimiento").length;
+  const renderTableBody = () => {
+    if (isLoading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={4} className="text-center py-8">
+            Cargando aeropuertos...
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (filteredAeropuertos.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={4} className="text-center py-8">
+            No se encontraron aeropuertos
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return filteredAeropuertos.map((aeropuerto) => (
+      <TableRow key={aeropuerto.codigoIATA}>
+        <TableCell className="font-bold">{aeropuerto.codigoIATA}</TableCell>
+        <TableCell className="font-medium">{aeropuerto.nombre}</TableCell>
+        <TableCell>
+          <div className="flex items-center gap-1">
+            <MapPin className="w-3 h-3 text-muted-foreground" />
+            {aeropuerto.ciudad}, {aeropuerto.pais}
+          </div>
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/aeropuertos/editar/${aeropuerto.codigoIATA}`)}>
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => deleteAeropuerto(aeropuerto.codigoIATA)}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+    ));
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -86,26 +103,6 @@ const Aeropuertos = () => {
               <div className="text-2xl font-bold">{aeropuertos.length}</div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Activos</CardTitle>
-              <div className="h-3 w-3 rounded-full bg-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{aeropuertosActivos}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">En Mantenimiento</CardTitle>
-              <div className="h-3 w-3 rounded-full bg-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{aeropuertosMantenimiento}</div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Search */}
@@ -129,41 +126,11 @@ const Aeropuertos = () => {
                 <TableHead>Código</TableHead>
                 <TableHead>Aeropuerto</TableHead>
                 <TableHead>Ubicación</TableHead>
-                <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {aeropuertos.map((aeropuerto) => (
-                <TableRow key={aeropuerto.codigo}>
-                  <TableCell className="font-bold">{aeropuerto.codigo}</TableCell>
-                  <TableCell className="font-medium">{aeropuerto.nombre}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-muted-foreground" />
-                      {aeropuerto.ciudad}, {aeropuerto.pais}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={aeropuerto.estado === "activo" ? "default" : "secondary"}
-                      className={aeropuerto.estado === "activo" ? "bg-success" : "bg-warning"}
-                    >
-                      {aeropuerto.estado === "activo" ? "Activo" : "Mantenimiento"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {renderTableBody()}
             </TableBody>
           </Table>
         </Card>

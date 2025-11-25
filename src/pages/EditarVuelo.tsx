@@ -4,12 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useVuelos } from "@/hooks/useVuelos";
 import { ArrowLeft, Plane } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
-const CrearVuelo = () => {
+const EditarVuelo = () => {
   const navigate = useNavigate();
-  const { createVuelo, isLoading } = useVuelos();
+  const { id } = useParams();
+  const { vuelos, updateVuelo, isLoading } = useVuelos();
   const [formData, setFormData] = useState({
     aerolinea: "",
     origen: "",
@@ -22,8 +24,34 @@ const CrearVuelo = () => {
     capacidadTotal: ""
   });
 
+  useEffect(() => {
+    if (vuelos.length > 0 && id) {
+      const vuelo = vuelos.find(v => v.id === id);
+      if (vuelo) {
+        const [fechaSalida, horaSalidaFull] = vuelo.fechaSalida.split('T');
+        const [fechaLlegada, horaLlegadaFull] = vuelo.fechaLlegada.split('T');
+        
+        setFormData({
+          aerolinea: vuelo.aerolinea || "",
+          origen: vuelo.origen,
+          destino: vuelo.destino,
+          fechaSalida: fechaSalida,
+          fechaLlegada: fechaLlegada,
+          horarioSalida: horaSalidaFull.substring(0, 5),
+          horarioLlegada: horaLlegadaFull.substring(0, 5),
+          precio: vuelo.precio.toString(),
+          capacidadTotal: vuelo.capacidadTotal?.toString() || ""
+        });
+      } else {
+        toast.error("Vuelo no encontrado");
+        navigate("/vuelos");
+      }
+    }
+  }, [vuelos, id, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!id) return;
     
     const fechaSalidaISO = `${formData.fechaSalida}T${formData.horarioSalida}:00`;
     const fechaLlegadaISO = `${formData.fechaLlegada}T${formData.horarioLlegada}:00`;
@@ -38,7 +66,7 @@ const CrearVuelo = () => {
       capacidadTotal: Number.parseInt(formData.capacidadTotal)
     };
 
-    const success = await createVuelo(vueloDTO);
+    const success = await updateVuelo(id, vueloDTO);
     if (success) {
       navigate("/vuelos");
     }
@@ -58,7 +86,7 @@ const CrearVuelo = () => {
           <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
             <Plane className="w-5 h-5 text-primary-foreground rotate-45" />
           </div>
-          <h1 className="text-xl font-bold">Crear Nuevo Vuelo</h1>
+          <h1 className="text-xl font-bold">Editar Vuelo</h1>
         </div>
       </header>
 
@@ -183,7 +211,7 @@ const CrearVuelo = () => {
 
               <div className="flex gap-4 pt-4">
                 <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? "Creando..." : "Crear Vuelo"}
+                  {isLoading ? "Guardando..." : "Guardar Cambios"}
                 </Button>
                 <Button type="button" variant="outline" className="flex-1" onClick={handleCancel} disabled={isLoading}>
                   Cancelar
@@ -197,4 +225,4 @@ const CrearVuelo = () => {
   );
 };
 
-export default CrearVuelo;
+export default EditarVuelo;

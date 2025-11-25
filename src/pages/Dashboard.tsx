@@ -1,21 +1,31 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAeropuertos } from "@/hooks/useAeropuertos";
+import { useAuth } from "@/hooks/useAuth";
+import { useReservas } from "@/hooks/useReservas";
+import { useVuelos } from "@/hooks/useVuelos";
+import { Calendar, FileText, LogOut, MapPin, Plane, PlusCircle } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plane, MapPin, Calendar, FileText, LogOut, PlusCircle } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { vuelos } = useVuelos();
+  const { aeropuertos } = useAeropuertos();
+  const { reservas } = useReservas();
   const [activeTab, setActiveTab] = useState("resumen");
 
-  // Mock data
-  const vuelosActivos = 12;
-  const aeropuertos = 8;
-  const reservasHoy = 145;
+  // Calculate stats
+  const today = new Date().toISOString().split('T')[0];
+  
+  const vuelosActivos = vuelos.filter(v => v.fechaSalida.startsWith(today)).length;
+  const totalAeropuertos = aeropuertos.length;
+  const reservasHoy = reservas.filter(r => r.fechaCreacion.startsWith(today)).length;
 
   const handleLogout = () => {
-    navigate("/");
+    logout();
   };
 
   return (
@@ -77,7 +87,7 @@ const Dashboard = () => {
               <MapPin className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{aeropuertos}</div>
+              <div className="text-2xl font-bold">{totalAeropuertos}</div>
               <p className="text-xs text-muted-foreground">En la red</p>
             </CardContent>
           </Card>
