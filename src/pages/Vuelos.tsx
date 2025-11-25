@@ -102,6 +102,11 @@ const Vuelos = () => {
             {(vuelo.asientosDisponibles || 0) > 0 ? "Disponible" : "Lleno"}
           </Badge>
         </TableCell>
+        <TableCell>
+          <Badge variant="outline" className="font-normal">
+            {vuelo.estado || 'N/A'}
+          </Badge>
+        </TableCell>
         <TableCell className="text-right">
           <div className="flex items-center justify-end gap-2">
             <Button variant="ghost" size="icon" onClick={() => navigate(`/vuelos/editar/${vuelo.id}`)}>
@@ -197,6 +202,7 @@ const Vuelos = () => {
                 <TableHead>Horario</TableHead>
                 <TableHead>Precio</TableHead>
                 <TableHead>Capacidad</TableHead>
+                <TableHead>Disponibilidad</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
