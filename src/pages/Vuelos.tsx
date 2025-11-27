@@ -95,11 +95,8 @@ const Vuelos = () => {
           </div>
         </TableCell>
         <TableCell>
-          <Badge 
-            variant={(vuelo.asientosDisponibles || 0) > 0 ? "default" : "destructive"}
-            className={(vuelo.asientosDisponibles || 0) > 0 ? "bg-success" : ""}
-          >
-            {(vuelo.asientosDisponibles || 0) > 0 ? "Disponible" : "Lleno"}
+          <Badge variant="outline" className="font-normal">
+            {vuelo.estado || 'N/A'}
           </Badge>
         </TableCell>
         <TableCell className="text-right">

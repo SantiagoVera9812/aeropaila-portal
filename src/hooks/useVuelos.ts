@@ -46,29 +46,35 @@ export const useVuelos = () => {
   };
 
   const updateVuelo = async (id: string, vuelo: VueloDTO) => {
-    setIsLoading(true);
-    try {
-      // Transform DTO to Entity structure for Backend
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id: _id, asientosDisponibles, numeroVuelo, ...vueloData } = vuelo;
-      const payload = {
-        ...vueloData,
-        origen: { codigoIATA: vuelo.origen },
-        destino: { codigoIATA: vuelo.destino },
-        capacidadTotal: vuelo.capacidadTotal
-      };
-      await api.put(`/v1/admin/vuelos/${id}`, payload);
-      toast.success('Vuelo actualizado exitosamente');
-      fetchVuelos();
-      return true;
-    } catch (error) {
-      console.error('Error updating vuelo:', error);
-      toast.error('Error al actualizar vuelo');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+  try {
+    // revisar vuelo
+    const sanitizedVuelo = {
+      ...vuelo,
+      capacidadTotal: vuelo.capacidadTotal && !isNaN(vuelo.capacidadTotal) 
+        ? vuelo.capacidadTotal 
+        : 0 
+    };
+
+    const { id: _id, numeroVuelo, ...vueloData } = sanitizedVuelo;
+    const payload = {
+      ...vueloData,
+      origen: { codigoIATA: vuelo.origen },
+      destino: { codigoIATA: vuelo.destino },
+    };
+
+    await api.put(`/v1/admin/vuelos/${id}`, payload);
+    toast.success('Vuelo actualizado exitosamente');
+    fetchVuelos();
+    return true;
+  } catch (error) {
+    console.error('Error updating vuelo:', error);
+    toast.error('Error al actualizar vuelo');
+    return false;
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const deleteVuelo = async (id: string) => {
     if (!confirm('¿Está seguro de eliminar este vuelo?')) return;

@@ -28,7 +28,8 @@ const CrearVuelo = () => {
     horarioSalida: "",
     horarioLlegada: "",
     precio: "",
-    capacidadTotal: ""
+    capacidadTotal: "",
+    clase: "ECONOMICA"
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,6 +38,15 @@ const CrearVuelo = () => {
     const fechaSalidaISO = `${formData.fechaSalida}T${formData.horarioSalida}:00`;
     const fechaLlegadaISO = `${formData.fechaLlegada}T${formData.horarioLlegada}:00`;
 
+    // Calcular duración
+    const start = new Date(fechaSalidaISO);
+    const end = new Date(fechaLlegadaISO);
+    const diffMs = end.getTime() - start.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    const duracion = `${hours}h ${mins}m`;
+
     const vueloDTO = {
       aerolinea: formData.aerolinea,
       origen: formData.origen,
@@ -44,7 +54,9 @@ const CrearVuelo = () => {
       fechaSalida: fechaSalidaISO,
       fechaLlegada: fechaLlegadaISO,
       precio: Number.parseFloat(formData.precio),
-      capacidadTotal: Number.parseInt(formData.capacidadTotal)
+      capacidadTotal: Number.parseInt(formData.capacidadTotal),
+      clase: formData.clase,
+      duracion: duracion
     };
 
     const success = await createVuelo(vueloDTO);
@@ -203,6 +215,23 @@ const CrearVuelo = () => {
                     required
                     disabled={isLoading}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="clase">Clase</Label>
+                  <Select 
+                    value={formData.clase} 
+                    onValueChange={(value) => setFormData({...formData, clase: value})}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar clase" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ECONOMICA">Económica</SelectItem>
+                      <SelectItem value="EJECUTIVA">Ejecutiva</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

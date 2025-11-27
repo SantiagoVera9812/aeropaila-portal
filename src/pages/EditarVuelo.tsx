@@ -77,6 +77,15 @@ const EditarVuelo = () => {
     const fechaSalidaISO = `${formData.fechaSalida}T${formData.horarioSalida}:00`;
     const fechaLlegadaISO = `${formData.fechaLlegada}T${formData.horarioLlegada}:00`;
 
+    // Calcular duración
+    const start = new Date(fechaSalidaISO);
+    const end = new Date(fechaLlegadaISO);
+    const diffMs = end.getTime() - start.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    const duracion = `${hours}h ${mins}m`;
+
     const vueloDTO: VueloDTO = {
       ...originalVuelo,
       aerolinea: formData.aerolinea,
@@ -85,7 +94,8 @@ const EditarVuelo = () => {
       fechaSalida: fechaSalidaISO,
       fechaLlegada: fechaLlegadaISO,
       precio: Number.parseFloat(formData.precio),
-      capacidadTotal: Number.parseInt(formData.capacidadTotal)
+      capacidadTotal: Number.parseInt(formData.capacidadTotal),
+      duracion: duracion
     };
 
     const success = await updateVuelo(id, vueloDTO);
@@ -225,7 +235,6 @@ const EditarVuelo = () => {
                   <Input
                     id="precio"
                     type="number"
-                    placeholder="150000"
                     value={formData.precio}
                     onChange={(e) => setFormData({...formData, precio: e.target.value})}
                     required
@@ -245,6 +254,7 @@ const EditarVuelo = () => {
                     disabled={isLoading}
                   />
                 </div>
+
               </div>
 
               <div className="flex gap-4 pt-4">
